@@ -1,0 +1,32 @@
+{
+  "name": "rapidPlugin_scpi",
+  "version": "1.0.1",
+  "description": "rapidPlugin for the rapidRTOS framework",
+  "keywords": "rapidRTOS, FreeRTOS, RTOS, rapid, arduino",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/PCLabTools/rapidPlugin_scpi.git"
+  },
+  "dependencies":
+  {
+      "rapidRTOS": "https://github.com/PCLabTools/rapidRTOS.git",
+      "Vrekrer_scpi_parser": "https://github.com/Vrekrer/Vrekrer_scpi_parser.git"
+  },
+  "authors":
+  [
+    {
+      "name": "Larry Colvin",
+      "url": "https://github.com/PCLabTools",
+      "maintainer": true
+    }
+  ],
+  "build": 
+  {
+      "extraScript": "scripts/build.py"
+  },
+  "license": "GNU",
+  "homepage": "https://github.com/PCLabTools/rapidPlugin_scpi",
+  "frameworks": "arduino",
+  "platforms": "https://github.com/maxgerhardt/platform-raspberrypi.git"
+}
