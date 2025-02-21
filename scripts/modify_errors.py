@@ -25,9 +25,9 @@ enum class rapidPluginErrors_t
 '''
 
 custom_errors = '''  // scpi ERRORS
-  TEMPLATE_ERROR1,          // Template error 1
-  TEMPLATE_ERROR2,          // Template error 2
-  TEMPLATE_ERROR3,          // Template error 3
+  SCPI_BUFFER_OVERFLOW,     // Template error 1
+  SCPI_COMMUNICATION_TIMEOUT,  // Template error 2
+  UNKNOWN_SCPI_COMMAND,     // Template error 3
 '''
 
 footer = '''};

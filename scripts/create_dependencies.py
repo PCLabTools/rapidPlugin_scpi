@@ -19,6 +19,8 @@ contents = '''/**
 
 #include "errors.h"
 
+void register_scpi_commands();
+
 #include "rapidPlugin_scpi.h"
 
 void SCPI_Identity(SCPI_C commands, SCPI_P parameters, Stream& interface);
@@ -27,11 +29,11 @@ void SCPI_Version(SCPI_C commands, SCPI_P parameters, Stream& interface);
 
 void register_scpi_commands()
 {
-  scpi.RegisterCommand(F("*IDN?"), &SCPI_Identity);
-  SetCommandTreeBase(F("SYSTem"));
-  scpi.RegisterCommand(F(":ERRor?"), &SCPI_Error);
-  scpi.RegisterCommand(F(":ERRor"), &SCPI_Error);
-  scpi.RegisterCommand(F(":VERSion?"), &SCPI_Version);
+  scpi_parser.RegisterCommand(F("*IDN?"), &SCPI_Identity);
+  scpi_parser.SetCommandTreeBase(F("SYSTem"));
+  scpi_parser.RegisterCommand(F(":ERRor?"), &SCPI_Error);
+  scpi_parser.RegisterCommand(F(":ERRor"), &SCPI_Error);
+  scpi_parser.RegisterCommand(F(":VERSion?"), &SCPI_Version);
 }
 
 void SCPI_Identity(SCPI_C commands, SCPI_P parameters, Stream& interface)
@@ -41,12 +43,43 @@ void SCPI_Identity(SCPI_C commands, SCPI_P parameters, Stream& interface)
 
 void SCPI_Error(SCPI_C commands, SCPI_P parameters, Stream& interface)
 {
-  //
+  String last_header = String(commands.Last());
+  if (last_header.endsWith(F("?")))
+  {
+    bool criticalError = false;
+    interface.print(int(currentError.error));
+    interface.print(F(","));
+    switch(rapidError(scpi_parser.last_error)){
+      case rapidError::SCPI_BUFFER_OVERFLOW: 
+        interface.println(F("Buffer overflow error"));
+        break;
+      case rapidError::SCPI_COMMUNICATION_TIMEOUT:
+        interface.println(F("Communication timeout error"));
+        break;
+      case rapidError::UNKNOWN_SCPI_COMMAND:
+        interface.println(F("Unknown command received"));
+        break;
+      case rapidError::NO_ERROR:
+        interface.println(F("No Error"));
+        break;
+      default:
+        interface.println(F("Unknown error"));
+        break;
+    }
+    if (!criticalError)
+    {
+      currentError.error = rapidError::NO_ERROR;
+    }
+  }
+  else
+  {
+    setCurrentError(rapidError(SCPI_Parser::ErrorCode(atoi(parameters.First()))));
+  }
 }
 
 void SCPI_Version(SCPI_C commands, SCPI_P parameters, Stream& interface)
 {
-  //
+  interface.printf("%d.%d.%d.%d\\n", SOFTWARE_VERSION_MAJOR, SOFTWARE_VERSION_MINOR, SOFTWARE_VERSION_FIX, SOFTWARE_VERSION_BUILD);
 }
 
 #ifdef rapidPlugin_scpi_override_main_loop
@@ -59,10 +92,11 @@ void rapidPlugin_scpi::main_loop(void* pModule)
 {
   rapidPlugin_scpi* plugin = (rapidPlugin_scpi*)pModule;
   register_scpi_commands();
+  scpi_parser.SetErrorHandler(&SCPI_Error_Handler);
   for ( ;; )
   {
-    scpi_parser.ProcessInput(_stream, "\n");
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    scpi_parser.ProcessInput(plugin->_stream, "\\n");
+    vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
 #endif
