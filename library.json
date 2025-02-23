@@ -1,6 +1,6 @@
 {
   "name": "rapidPlugin_scpi",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "rapidPlugin for the rapidRTOS framework",
   "keywords": "rapidRTOS, FreeRTOS, RTOS, rapid, arduino",
   "repository":

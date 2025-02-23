@@ -13,7 +13,11 @@
 #define rapidPlugin_scpi_h
 
 #ifndef rapidPlugin_scpi_stack_size
-#define rapidPlugin_scpi_stack_size 64
+#define rapidPlugin_scpi_stack_size 512
+#endif
+
+#ifndef rapidPlugin_scpi_interface_stack_size
+#define rapidPlugin_scpi_interface_stack_size 256
 #endif
 
 #include "rapidRTOS.h"
@@ -157,7 +161,7 @@ rapidPlugin_scpi::rapidPlugin_scpi(const char* identity, Stream& stream)
 */
 BaseType_t rapidPlugin_scpi::run()
 {
-  return rapidPlugin::run(&main_loop, rapidPlugin_scpi_stack_size);
+  return rapidPlugin::run(&main_loop, rapidPlugin_scpi_stack_size, rapidPlugin_scpi_interface_stack_size);
 }
 
 /**
@@ -170,7 +174,7 @@ BaseType_t rapidPlugin_scpi::run()
 */
 BaseType_t rapidPlugin_scpi::runCore(BaseType_t core)
 {
-  return rapidPlugin::runCore(core, &main_loop, rapidPlugin_scpi_stack_size);
+  return rapidPlugin::runCore(core, &main_loop, rapidPlugin_scpi_stack_size, rapidPlugin_scpi_interface_stack_size);
 }
 
 #ifndef rapidPlugin_scpi_override_main_loop
