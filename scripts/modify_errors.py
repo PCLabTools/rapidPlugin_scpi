@@ -20,8 +20,8 @@ header = '''/**
  */
 enum class rapidPluginErrors_t
 {
-  NO_ERROR = 0,             // No error has occured
-  UNKNOWN_ERROR,            // Unknown error is a catch to be used when no other error is applicable
+  NO_ERROR = 0,                     // No error has occured
+  UNKNOWN_ERROR,                    // Unknown error is a catch to be used when no other error is applicable
 '''
 
 custom_errors = '''
