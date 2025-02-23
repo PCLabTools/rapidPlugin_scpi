@@ -19,28 +19,161 @@ contents = '''/**
 
 #include "errors.h"
 
+#ifndef COMPANY_NAME
+#define COMPANY_NAME "MyCompany"
+#endif
+
+#ifndef MODEL_NAME
+#define MODEL_NAME "MyModel"
+#endif
+
+#ifndef SERIAL_NUMBER
+#define SERIAL_NUMBER "123456"
+#endif
+
 void register_scpi_commands();
 
 #include "rapidPlugin_scpi.h"
 
+
+/*
+! Function Prototypes
+*/
+
 void SCPI_Identity(SCPI_C commands, SCPI_P parameters, Stream& interface);
+void SCPI_Clear_Error(SCPI_C commands, SCPI_P parameters, Stream& interface);
+void SCPI_Operation_Complete(SCPI_C commands, SCPI_P parameters, Stream& interface);
+void SCPI_Reset(SCPI_C commands, SCPI_P parameters, Stream& interface);
+void SCPI_Self_Test(SCPI_C commands, SCPI_P parameters, Stream& interface);
 void SCPI_Error(SCPI_C commands, SCPI_P parameters, Stream& interface);
 void SCPI_Version(SCPI_C commands, SCPI_P parameters, Stream& interface);
+void SCPI_Debug(SCPI_C commands, SCPI_P parameters, Stream& interface);
+void SCPI_Software_Reset(SCPI_C commands, SCPI_P parameters, Stream& interface);
 
+
+/*
+! Command Registry
+*/
+
+/**
+ * @brief Registers the SCPI commands
+ * 
+ * @details
+ * 
+ * Command | Description                  | Parameters | Return
+ * ------- | ---------------------------- | ---------- | ----------------------------------------------------------------------------
+ * *IDN?   | Queries firmware identity    | none       | [str] "<company name>, <model number>, <serial number>, <firmware version>"
+ * *CLS    | Resets the error             | none       | none
+ * *OPC?   | Queries operation complete   | none       | [int] <status>
+ * *RST    | Factory resets the board     | none       | none
+ * *TST?   | Perform self test and report | none       | [int] <result>
+ * 
+ * **SYSTem**
+ * 
+ * Command   | Description              | Parameters          | Return
+ * --------- | ------------------------ | ------------------- | ----------------------------------
+ * :ERRor?   | Queries current error    | none                | [str] "<error code>,<description>"
+ * :ERRor    | Asserts an error         | [int] <error code>  | none
+ * :VERSion? | Queries the SCPI version | none                | [str] "<version>"
+ * :DEBug?   | Queries the debug level  | none                | [int] <debug level>
+ * :DEBug    | Sets the debug level     | [int] <debug level> | none
+ * :RESet    | Initiates software reset | none                | none
+ * 
+ */
 void register_scpi_commands()
 {
   scpi_parser.RegisterCommand(F("*IDN?"), &SCPI_Identity);
+  scpi_parser.RegisterCommand(F("*CLS"), &SCPI_Clear_Error);
+  scpi_parser.RegisterCommand(F("*OPC?"), &SCPI_Operation_Complete);
+  scpi_parser.RegisterCommand(F("*RST"), &SCPI_Reset);
+  scpi_parser.RegisterCommand(F("*TST?"), &SCPI_Self_Test);
   scpi_parser.SetCommandTreeBase(F("SYSTem"));
   scpi_parser.RegisterCommand(F(":ERRor?"), &SCPI_Error);
   scpi_parser.RegisterCommand(F(":ERRor"), &SCPI_Error);
   scpi_parser.RegisterCommand(F(":VERSion?"), &SCPI_Version);
+  scpi_parser.RegisterCommand(F(":DEBug?"), &SCPI_Debug);
+  scpi_parser.RegisterCommand(F(":DEBug"), &SCPI_Debug);
 }
 
+
+/*
+! SCPI Commands
+*/
+
+/**
+ * @brief Queries the identity of the microcontroller
+ * 
+ * @return "MyCompany, MyModel, 123456, vX.X.X"
+ * 
+ */
 void SCPI_Identity(SCPI_C commands, SCPI_P parameters, Stream& interface)
 {
-  interface.println(F("Vrekrer,SCPI Example,#00," VREKRER_SCPI_VERSION));
+  interface.printf("%s, %s, %s, v%d.%d.%d\\n", \
+    COMPANY_NAME, \
+    MODEL_NAME, \
+    SERIAL_NUMBER, \
+    SOFTWARE_VERSION_MAJOR, \
+    SOFTWARE_VERSION_MINOR, \
+    SOFTWARE_VERSION_FIX);
 }
 
+/**
+ * @brief Resets the currently held error.
+ * This is useful is clearing a critical error since
+ * reading standard errors clear the error
+ * 
+ */
+void SCPI_Clear_Error(SCPI_C commands, SCPI_P parameters, Stream& interface)
+{
+  setCurrentError(rapidError::NO_ERROR);
+}
+
+/**
+ * @brief Queries if operation is complete
+ * 
+ * @return "1": complete | "0": pending"
+ * 
+ */
+void SCPI_Operation_Complete(SCPI_C commands, SCPI_P parameters, Stream& interface)
+{
+  interface.println(F("1"));
+}
+
+/**
+ * @brief Resets the microcontroller.
+ * If using rapidPlugin_memory reset the memory to default
+ * 
+ */
+void SCPI_Reset(SCPI_C commands, SCPI_P parameters, Stream& interface)
+{
+  #ifdef rapidPlugin_memory_h
+  // reset memory
+  Memory_t* Memory = new Memory_t;
+  #endif
+  SCPI_Software_Reset(commands, parameters, interface);
+}
+
+/**
+ * @brief Perform a self test
+ * 
+ * @return "1": pass | "0": fail
+ * 
+ */
+void SCPI_Self_Test(SCPI_C commands, SCPI_P parameters, Stream& interface)
+{
+  interface.println(F("1"));
+}
+
+/**
+ * @brief Queries or asserts the last error.
+ * If querying the error and it returns a standard error
+ * the last error is cleared
+ * 
+ * @param uint8_t error code
+ * 
+ * @return "0, no error"
+ * 
+ */
 void SCPI_Error(SCPI_C commands, SCPI_P parameters, Stream& interface)
 {
   String last_header = String(commands.Last());
@@ -77,10 +210,69 @@ void SCPI_Error(SCPI_C commands, SCPI_P parameters, Stream& interface)
   }
 }
 
+/**
+ * @brief Queries the SCPI version
+ * 
+ * @return "vX.X.X"
+ */
 void SCPI_Version(SCPI_C commands, SCPI_P parameters, Stream& interface)
 {
-  interface.printf("%d.%d.%d.%d\\n", SOFTWARE_VERSION_MAJOR, SOFTWARE_VERSION_MINOR, SOFTWARE_VERSION_FIX, SOFTWARE_VERSION_BUILD);
+  interface.printf(VREKRER_SCPI_VERSION);
 }
+
+/**
+ * @brief Queries or sets the debug level
+ * 
+ * @param int <debug level>
+ * 
+ * @return int <debug level>
+ * 
+ */
+void SCPI_Debug(SCPI_C commands, SCPI_P parameters, Stream& interface)
+{
+  String last_header = String(commands.Last());
+  if (last_header.endsWith(F("?")))
+  {
+    #ifdef rapidPlugin_memory_h
+    interface.println(Memory.DEBUG_LEVEL);
+    #else
+    interface.println(F("0"));
+    #endif
+  }
+  else
+  {
+    #ifdef rapidPlugin_memory_h
+    Memory.DEBUG_LEVEL = atoi(parameters[0]);
+    #endif
+    rapidRTOS.setDebugLevel(atoi(parameters[0]));
+  }
+}
+
+/**
+ * @brief Resets the microcontroller.
+ * 
+ */
+void SCPI_Software_Reset(SCPI_C commands, SCPI_P parameters, Stream& interface)
+{
+  #ifdef BOARD_AVR
+  resetFunc();
+  #endif
+  #ifdef BOARD_ESP32
+  ESP.restart();
+  #endif
+  #ifdef BOARD_RP2040
+  #define AIRCR_Register (*((volatile uint32_t*)(PPB_BASE + 0x0ED0C)))
+  AIRCR_Register = 0x5FA0004;
+  #endif
+  #ifdef BOARD_STM32
+  NVIC_SystemReset();
+  #endif
+}
+
+
+/*
+! rapidPlugin_scpi Overrides
+*/
 
 #ifdef rapidPlugin_scpi_override_main_loop
 /**

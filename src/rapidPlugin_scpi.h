@@ -19,36 +19,6 @@
 #include "rapidRTOS.h"
 
 /*
-// STATus
-//     :OPERation
-//         :CONDition?
-//         :ENABle
-//         [:EVENt]?
-//     :QUEStionable
-//         :CONDition?
-//         :ENABle
-//         [:EVENt]?
-//     :PRESet
-SYSTem
-    :ERRor - {numeric},{string}
-    //     [:NEXT]?
-    // :VERSion?
-*CLS - clear errors and other events
-// *ESE
-// *ESE?
-// *ESR?
-*IDN? - identity <company name>, <model number>, <serial number>, <firmware revision>
-// *OPC
-*OPC? - query operation complete
-*RST - factory reset
-// *SRE
-// *SRE?
-// *STB
-*TST? - self test (0: pass, 1: fail)
-// *WAI
-*/
-
-/*
 Largest branch needed
 or
 Max number of parameters

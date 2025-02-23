@@ -24,10 +24,11 @@ enum class rapidPluginErrors_t
   UNKNOWN_ERROR,            // Unknown error is a catch to be used when no other error is applicable
 '''
 
-custom_errors = '''  // scpi ERRORS
-  SCPI_BUFFER_OVERFLOW,     // Template error 1
-  SCPI_COMMUNICATION_TIMEOUT,  // Template error 2
-  UNKNOWN_SCPI_COMMAND,     // Template error 3
+custom_errors = '''
+  // scpi ERRORS
+  SCPI_BUFFER_OVERFLOW,             // Incoming SCPI buffer overflow
+  SCPI_COMMUNICATION_TIMEOUT,       // SCPI communication timed out
+  UNKNOWN_SCPI_COMMAND,             // Unkown SCPI command received
 '''
 
 footer = '''};
