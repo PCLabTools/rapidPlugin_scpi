@@ -147,8 +147,8 @@ void SCPI_Operation_Complete(SCPI_C commands, SCPI_P parameters, Stream& interfa
 void SCPI_Reset(SCPI_C commands, SCPI_P parameters, Stream& interface)
 {
   #ifdef rapidPlugin_memory_h
-  // reset memory
-  Memory_t* Memory = new Memory_t;
+  Memory_t* Memory = new Memory_t;  // reset memory
+  delay(1000);                      // wait for memory to update
   #endif
   SCPI_Software_Reset(commands, parameters, interface);
 }
