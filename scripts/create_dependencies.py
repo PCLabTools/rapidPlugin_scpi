@@ -233,11 +233,7 @@ void SCPI_Debug(SCPI_C commands, SCPI_P parameters, Stream& interface)
   String last_header = String(commands.Last());
   if (last_header.endsWith(F("?")))
   {
-    #ifdef rapidPlugin_memory_h
-    interface.println(Memory.DEBUG_LEVEL);
-    #else
-    interface.println(F("0"));
-    #endif
+    interface.println(rapidRTOS.getDebugLevel());
   }
   else
   {
